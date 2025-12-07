@@ -1,7 +1,15 @@
 // popup.js
-// config.jsはpopup.htmlで読み込まれる想定
+import { GitHubAPI } from './github-api.js';
 
-const githubAPI = new GitHubAPI(CONFIG);
+// config.json を読み込み
+async function loadConfig() {
+  const url = chrome.runtime.getURL('config.json');
+  const res = await fetch(url);
+  return await res.json();
+}
+
+const config = await loadConfig();
+const githubAPI = new GitHubAPI(config);
 
 // UI要素
 const saveMemoryBtn = document.getElementById('saveMemory');
@@ -9,6 +17,7 @@ const saveSummaryBtn = document.getElementById('saveSummary');
 const summaryText = document.getElementById('summaryText');
 const statusDiv = document.getElementById('status');
 
+// ... 以下は既存のコード(変更なし)
 // ステータス表示
 function showStatus(message, isError = false) {
   statusDiv.textContent = message;
@@ -80,23 +89,3 @@ async function doSummarySave() {
 // ボタンクリックイベント（ポップアップから）
 saveMemoryBtn.addEventListener('click', doMemorySave);
 saveSummaryBtn.addEventListener('click', doSummarySave);
-
-// === content.js からのメッセージリスナー ===
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'doMemorySave') {
-    doMemorySave().then(() => {
-      sendResponse({ success: true });
-    }).catch((error) => {
-      sendResponse({ success: false, error: error.message });
-    });
-    return true; // 非同期レスポンス
-  } else if (message.action === 'doSummarySave') {
-    doSummarySave().then(() => {
-      sendResponse({ success: true });
-    }).catch((error) => {
-      sendResponse({ success: false, error: error.message });
-    });
-    return true;
-  }
-});
-

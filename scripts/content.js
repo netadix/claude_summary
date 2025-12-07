@@ -2,7 +2,10 @@
 const MEMORY_TRIGGER = '記憶保存お願いします';
 const SUMMARY_TRIGGER = 'サマリー保存お願いします';
 
-// === プロンプト欄監視・キーワード一致で popup に指示 ===
+// === 二重実行防止フラグ ===
+let isProcessing = false;
+
+// === プロンプト欄監視・キーワード一致で background に指示 ===
 function setupPromptMonitor() {
   function findPromptBox() {
     const byTestId = document.querySelector('textarea[data-testid="chat-input-ssr"]');
@@ -11,16 +14,17 @@ function setupPromptMonitor() {
     if (byAria) return byAria;
     return document.querySelector('textarea, [contenteditable="true"]');
   }
+  
   setInterval(() => {
-    // まずはユーザーがフォーカスしている要素（より信頼できる）を確認
+    // 処理中はスキップ
+    if (isProcessing) return;
+    
     let promptBox = document.activeElement;
-    // フォーカス要素が適切でない場合は通常の探索にフォールバック
     if (!promptBox || !(promptBox.tagName === 'TEXTAREA' || promptBox.isContentEditable || promptBox.tagName === 'INPUT')) {
       promptBox = findPromptBox();
     }
     if (!promptBox) return;
 
-    // 値の読み取り（フォーカス要素優先）
     let value = '';
     try {
       if (promptBox.tagName === 'TEXTAREA' || promptBox.tagName === 'INPUT') {
@@ -32,10 +36,7 @@ function setupPromptMonitor() {
       value = '';
     }
 
-    // もしまだ初期SSRのまま（例: ああああ... のようなプレースホルダ）が返ってきている場合、
-    // フォーカス中の子要素や近傍の要素に実際の入力があるか探す
     if (value && /^あ{3,}/.test(value)) {
-      // 探索: フォーカス要素の直下・兄弟要素で contenteditable のテキストを探す
       const nearby = promptBox.querySelector && promptBox.querySelector('[contenteditable]');
       if (nearby && nearby.textContent && nearby.textContent.trim()) {
         value = nearby.textContent.trim();
@@ -46,7 +47,6 @@ function setupPromptMonitor() {
       }
     }
 
-    console.log('Prompt監視 tag:', promptBox.tagName, 'value:', value);
     value = (value || '').trim();
 
     function clearAndDispatch(el) {
@@ -68,16 +68,24 @@ function setupPromptMonitor() {
     }
 
     if (value === MEMORY_TRIGGER) {
+      isProcessing = true;
+      console.log('💾 記憶保存開始...');
       clearAndDispatch(promptBox);
+      
       chrome.runtime.sendMessage({ action: 'doMemorySave' }, (response) => {
-        console.log('Memory save response:', response);
+        console.log('✅ Memory save response:', response);
+        setTimeout(() => { isProcessing = false; }, 2000);
       });
+      
     } else if (value === SUMMARY_TRIGGER) {
-      // send the typed summary text to background so it can save even when popup is closed
+      isProcessing = true;
+      console.log('📝 サマリー保存開始...');
       const summaryText = value;
       clearAndDispatch(promptBox);
+      
       chrome.runtime.sendMessage({ action: 'doSummarySave', summary: summaryText }, (response) => {
-        console.log('Summary save response:', response);
+        console.log('✅ Summary save response:', response);
+        setTimeout(() => { isProcessing = false; }, 2000);
       });
     }
   }, 400);
@@ -86,16 +94,12 @@ setupPromptMonitor();
 
 function extractConversation() {
   const messages = [];
-  
   const messageContainers = document.querySelectorAll('[data-test-render-count]');
   
-  messageContainers.forEach((container, index) => {
+  messageContainers.forEach((container) => {
     const textContent = container.innerText || container.textContent || '';
     const trimmed = textContent.trim();
-    
-    if (trimmed) {
-      messages.push(trimmed);
-    }
+    if (trimmed) messages.push(trimmed);
   });
   
   if (messages.length === 0) {
@@ -104,18 +108,13 @@ function extractConversation() {
   
   const now = new Date();
   const title = `# ${now.toLocaleString('ja-JP')} の会話\n\n`;
-  
   return title + messages.join('\n\n---\n\n');
 }
 
 function getSessionId() {
   const pathname = window.location.pathname;
   const chatMatch = pathname.match(/\/chat\/([a-zA-Z0-9-]+)/);
-  
-  if (chatMatch) {
-    return chatMatch[1];
-  }
-  
+  if (chatMatch) return chatMatch[1];
   return `session_${Date.now()}`;
 }
 
@@ -124,7 +123,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     try {
       const conversation = extractConversation();
       const sessionId = getSessionId();
-      
       sendResponse({ 
         success: true, 
         data: conversation,

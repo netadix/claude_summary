@@ -1,4 +1,4 @@
-class GitHubAPI {
+export class GitHubAPI {
   constructor(config) {
     this.token = config.githubToken;
     this.user = config.githubUser;
