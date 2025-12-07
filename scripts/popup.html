@@ -32,23 +32,11 @@
       background: #9ca3af;
       cursor: not-allowed;
     }
-    textarea {
-      width: 100%;
-      min-height: 120px;
-      padding: 8px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 13px;
-      resize: vertical;
-      box-sizing: border-box;
+    button.secondary {
+      background: #10b981;
     }
-    .label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #374151;
+    button.secondary:hover {
+      background: #059669;
     }
     .status {
       margin-top: 12px;
@@ -68,20 +56,34 @@
     .hidden {
       display: none;
     }
+    .section {
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
   <h2>🧠 Claude Memory Saver</h2>
   
-  <button id="saveMemory">💾 記憶保存</button>
+  <div class="section">
+    <div class="section-title">記憶管理</div>
+    <button id="saveMemory">💾 記憶保存</button>
+  </div>
   
-  <label class="label">📝 サマリー:</label>
-  <textarea id="summaryText" placeholder="Assistantに作ってもらったサマリーをここに貼り付け..."></textarea>
-  
-  <button id="saveSummary">📝 サマリー保存</button>
+  <div class="section">
+    <div class="section-title">使い方</div>
+    <button id="usageGuide" class="secondary">❓ 使い方説明をコピー</button>
+  </div>
   
   <div id="status" class="status hidden"></div>
 
-<script type="module" src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>

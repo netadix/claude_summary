@@ -126,12 +126,4 @@ async saveMemory(content, sessionId) { // ← 引数追加
       // エラーが出ても保存は続行
     }
   }
-
-  async saveSummary(content) {
-    return await this.saveFile(
-      'summary.md',
-      content,
-      '📝 サマリー更新'
-    );
-  }
 }

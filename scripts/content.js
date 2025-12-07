@@ -1,22 +1,21 @@
 // === トリガーワード（定数） ===
 const MEMORY_TRIGGER = '記憶保存お願いします';
-const SUMMARY_TRIGGER = 'サマリー保存お願いします';
 
 // === 二重実行防止フラグ ===
 let isProcessing = false;
 
-// === プロンプト欄監視・キーワード一致で background に指示 ===
+// === プロンプト欄を見つける関数 ===
+function findPromptBox() {
+  const byTestId = document.querySelector('textarea[data-testid="chat-input-ssr"]');
+  if (byTestId) return byTestId;
+  const byAria = document.querySelector('textarea[aria-label], [contenteditable][aria-label]');
+  if (byAria) return byAria;
+  return document.querySelector('textarea, [contenteditable="true"]');
+}
+
+// === プロンプト欄監視 ===
 function setupPromptMonitor() {
-  function findPromptBox() {
-    const byTestId = document.querySelector('textarea[data-testid="chat-input-ssr"]');
-    if (byTestId) return byTestId;
-    const byAria = document.querySelector('textarea[aria-label], [contenteditable][aria-label]');
-    if (byAria) return byAria;
-    return document.querySelector('textarea, [contenteditable="true"]');
-  }
-  
   setInterval(() => {
-    // 処理中はスキップ
     if (isProcessing) return;
     
     let promptBox = document.activeElement;
@@ -76,22 +75,12 @@ function setupPromptMonitor() {
         console.log('✅ Memory save response:', response);
         setTimeout(() => { isProcessing = false; }, 2000);
       });
-      
-    } else if (value === SUMMARY_TRIGGER) {
-      isProcessing = true;
-      console.log('📝 サマリー保存開始...');
-      const summaryText = value;
-      clearAndDispatch(promptBox);
-      
-      chrome.runtime.sendMessage({ action: 'doSummarySave', summary: summaryText }, (response) => {
-        console.log('✅ Summary save response:', response);
-        setTimeout(() => { isProcessing = false; }, 2000);
-      });
     }
   }, 400);
 }
 setupPromptMonitor();
 
+// === 会話取得 ===
 function extractConversation() {
   const messages = [];
   const messageContainers = document.querySelectorAll('[data-test-render-count]');
@@ -111,6 +100,7 @@ function extractConversation() {
   return title + messages.join('\n\n---\n\n');
 }
 
+// === セッションID取得 ===
 function getSessionId() {
   const pathname = window.location.pathname;
   const chatMatch = pathname.match(/\/chat\/([a-zA-Z0-9-]+)/);
@@ -118,7 +108,9 @@ function getSessionId() {
   return `session_${Date.now()}`;
 }
 
+// === メッセージリスナー ===
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // 会話取得
   if (request.action === 'getConversation') {
     try {
       const conversation = extractConversation();
@@ -132,5 +124,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ success: false, error: error.message });
     }
   }
+    
   return true;
 });
