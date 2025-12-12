@@ -146,7 +146,7 @@ https://47chains.hatenablog.jp/
 
 **または:**
 ヨシ君「ほい、これ読んで」
-https://raw.githubusercontent.com/netadix/claude_summary/refs/heads/main/summaries/latest_SUMMARY.md
+https://github.com/netadix/claude_summary/blob/main/summaries/summary.md
 
 ### 重要な設計思想
 - 「くだらない会話」が大事
@@ -213,7 +213,7 @@ https://raw.githubusercontent.com/netadix/claude_summary/refs/heads/main/summari
 
 ## 🔗 重要なリンク
 - **リポジトリ**: https://github.com/netadix/claude_summary
-- **サマリー(固定URL)**: https://raw.githubusercontent.com/netadix/claude_summary/refs/heads/main/summaries/latest_SUMMARY.md
+- **サマリー(固定URL)**: https://github.com/netadix/claude_summary/blob/main/summaries/summary.md
 - **会話記録**: https://github.com/netadix/claude_summary/tree/main/memories
 - **チェーンブログ**: https://47chains.hatenablog.jp/
 
