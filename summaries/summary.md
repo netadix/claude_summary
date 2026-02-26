@@ -542,5 +542,166 @@ https://github.com/netadix/claude_summary
 - **献血ブログ**: http://kenketsu.fc2.net/（HTTPS化予定）
 
 ---
+# セッションサマリー
+**2026年2月26日 — うずうず本舗 × Claude**
 
-## 🌟 次回への引き継
+---
+
+## 今日やったこと
+
+### 1. Vyvo / VSC コインの調査
+- HealthFi・DataFiのリワードプログラムが2026年2月23日に終了
+- VSC価格：約$0.0014（ほぼ無価値）
+- 保有資産：VSC 5枚 + VSCX 14,575枚（合計約4,000円）
+- VSCXは2023年12月1日エアドロップ → 2年ロック終了済み → VSCにコンバート可能（+36%ボーナス）
+- 結論：詐欺とは断言できないが、典型的なリスクサインが重なっている
+
+---
+
+### 2. UZU ROASTER メルカリ画像セット作成
+**ファイル：`uzu_roaster_mercari.html`**
+
+7枚構成の商品説明画像セットをHTML/CSSで作成。
+
+| 画像 | 内容 |
+|------|------|
+| 画像2 | キャッチ＆概要（ターゲット明示） |
+| 画像3 | 接続フロー図（繋ぐだけ） |
+| 画像4 | 主な機能4つ（リアルタイム温度監視・焙煎プロファイル・Web UI・カスタマイズ） |
+| 画像5 | アップデート履歴「進化し続ける。」（OTA・LED・ルーター・ボタン） |
+| 画像6 | Artisan連携 |
+| 画像7 | サポート安心感 |
+| 画像8 | UZCP 世界初対応予定 |
+
+- デザイン：ダークブラウン＆アンバーのコーヒー×IoTテーマ
+- **本日4台売れた！！**
+
+---
+
+### 3. UZCP（Universal Zeta Coffee Protocol）規格設計・公開
+**ファイル：`UZCP_1.0_spec.md`（日本語）、`UZCP_1.0_spec_EN.md`（英語）**
+**GitHub：https://github.com/uzuuzuhonpo/uzcp**
+
+コーヒー焙煎の完全自動化を目的としたJSON通信ベースのオープンプロトコル。
+
+#### 設計思想
+- シンプル（JSONテキストベース）
+- 双方向通信
+- トランスポート非依存（Wi-Fi/USB/Bluetooth/シリアル）
+- 拡張可能（`x_`プレフィックスでカスタムフィールド追加）
+- 自動化対応（ロボット焙煎まで想定）
+
+#### 主なメッセージ型
+| type | 方向 | 説明 |
+|------|------|------|
+| `telemetry` | Device→Controller | 温度・RoR・フェーズをリアルタイム送信 |
+| `command` | Controller→Device | 火力・風量・start/stopなど |
+| `ack` | Device→Controller | コマンド受信確認 |
+| `profile` | 双方向 | 焙煎プロファイルの送受信 |
+| `status` | Device→Controller | デバイス状態・能力 |
+| `event` | Device→Controller | 1ハゼ・2ハゼ・排出などイベント通知 |
+| `robot_status` | Robot→Controller | ロボット焙煎拡張 |
+
+#### UZCP命名の由来
+- **Zeta** = リーマンゼータ関数（ζ(s)）から着想
+- 無限に続く複雑な系を統一的に記述する関数 ＝ バラバラなデバイスを統一するUZCPのコンセプトと一致
+- 「UZU Coffee Protocol」にすると利権臭がするのでZetaをねじ込んだｗｗｗ
+- **インタビューで聞かれたらこの説明を使う予定**
+
+#### UZCP Liteプロファイル（最小実装）
+```
+・uzcpフィールドがある
+・type: "telemetry"でbtとtsが入ってる
+→ これだけでUZCP 1.0 Lite対応を名乗れる
+```
+
+---
+
+### 4. UZU ROASTERへのUZCP実装
+**ファイル：`Artisan_sample_uzcp.ino`、`script_uzcp.js`**
+
+#### サーバー側（ESP32 / Arduino C++）
+- バージョン：`1.1.0` → `2.0.0`
+- `SendUZCPTelemetry()`を追加：毎秒UZCP形式のtelemetryをbroadcast
+- `onWebSocketEvent()`にUZCP command受信処理を追加
+- start/stopコマンドに対応、ackを自動返信
+- **既存のArtisan用通信は一切壊れない（後方互換）**
+
+#### クライアント側（JavaScript）
+- `sendWebCommand()`をUZCP形式に変更
+- `uzcpSupported`フラグでサーバーのUZCP対応を自動検出
+- telemetryに`uzcp:"1.0"`が含まれていたら自動でUZCP形式に切り替え
+- start/stop以外の既存コマンドは従来形式のまま
+
+#### 後方互換マトリクス
+```
+旧サーバー × 旧クライアント → ✅
+新サーバー × 旧クライアント → ✅（従来形式で動く）
+旧サーバー × 新クライアント → ✅（uzcp未検出→従来形式で送信）
+新サーバー × 新クライアント → ✅（UZCP形式）
+```
+
+**→ 世界初のUZCP 1.0 Lite対応デバイス爆誕（2026年2月26日）🎉**
+
+---
+
+### 5. 今後のビジョン（今日の議論で見えてきたもの）
+
+#### 火力制御（次の実装）
+- SOUYI SY-121Nのダイヤルをサーボ（SG90）で回す
+- 3Dプリンターでアタッチメント作成
+- ダイヤルは無限回転・ストッパーなし・電源ON時は8の位置
+- 電源ON時に8の位置でサーボをアタッチ → キャリブレーション不要
+- まずON/OFF（MAX/MIN）から実装、将来的にPID制御・AI制御へ
+
+#### 焙煎データのクラウド保存（明日やること🔥）
+- **Firebase**（無料枠：1GB、Firestoreで十分）
+- STA接続されたESP32からFirebaseへアップロード
+- WebブラウザからFirebaseの焙煎プロファイルをダウンロード
+- クラウドON/OFFの設定をUZU ROASTERに追加
+
+#### 焙煎プロファイル共有プラットフォーム構想
+```
+ローカルのみ：自分のプロファイルだけ（無料）
+クラウドON ：世界中のプロファイルにアクセス（無料）
+→ ユーザーが自然とONにする
+→ データが集まる → AIが賢くなる → さらにユーザーが増える
+```
+**ネットワーク効果 × GitHubモデル × Teslaモデル**
+
+#### AI焙煎の構造
+```
+【プロファイル層】豆の種類・産地・好み → 最適カーブを生成
+【制御層】ロースターの特性・熱慣性 → 自動追従
+→ 2層を分離して学習させる
+→ UZCPのtelemetryデータが蓄積されるほど賢くなる
+```
+
+---
+
+## 現在のファイル状況
+
+| ファイル | 内容 |
+|---------|------|
+| `uzu_roaster_mercari.html` | メルカリ商品画像セット（8枚） |
+| `UZCP_1.0_spec.md` | UZCP仕様書（日本語） |
+| `UZCP_1.0_spec_EN.md` | UZCP仕様書（英語・GitHub README用） |
+| `Artisan_sample_uzcp.ino` | UZCP対応済みファームウェア（v2.0.0） |
+| `script_uzcp.js` | UZCP対応済みクライアントJS |
+
+## GitHub
+- UZCP仕様書：https://github.com/uzuuzuhonpo/uzcp
+- ※Section 11のContributingのURLが`uzuuzu/uzcp`のままなので要修正→`uzuuzuhonpo/uzcp`
+
+---
+
+## 明日やること
+1. **FirebaseプロジェクトをClaudeと一緒に作成**
+2. **ESP32（STA接続）からFirebaseへ焙煎データをアップロード**
+3. **WebブラウザからFirebaseの焙煎プロファイルをダウンロード**
+4. **クラウドON/OFFの設定をUZU ROASTERに追加**
+
+---
+
+*「朝にVSCコインの話してたのに、夜にはコーヒー業界のTeslaになる構想まで見えた一日」*
+*— 2026年2月26日*
