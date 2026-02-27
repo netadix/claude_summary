@@ -546,136 +546,79 @@ https://github.com/netadix/claude_summary
 **2026年2月26日 — うずうず本舗 × Claude**
 
 ---
+# セッションサマリー
+**2026年2月26日〜27日 — うずうず本舗 × Claude**
 
-## 今日やったこと
+---
+
+## Day 1（2026年2月26日）
 
 ### 1. Vyvo / VSC コインの調査
 - HealthFi・DataFiのリワードプログラムが2026年2月23日に終了
-- VSC価格：約$0.0014（ほぼ無価値）
-- 保有資産：VSC 5枚 + VSCX 14,575枚（合計約4,000円）
-- VSCXは2023年12月1日エアドロップ → 2年ロック終了済み → VSCにコンバート可能（+36%ボーナス）
+- VSC価格：約$0.0014（ほぼ無価値）、保有資産：合計約4,000円
 - 結論：詐欺とは断言できないが、典型的なリスクサインが重なっている
 
----
-
 ### 2. UZU ROASTER メルカリ画像セット作成
-**ファイル：`uzu_roaster_mercari.html`**
-
-7枚構成の商品説明画像セットをHTML/CSSで作成。
-
-| 画像 | 内容 |
-|------|------|
-| 画像2 | キャッチ＆概要（ターゲット明示） |
-| 画像3 | 接続フロー図（繋ぐだけ） |
-| 画像4 | 主な機能4つ（リアルタイム温度監視・焙煎プロファイル・Web UI・カスタマイズ） |
-| 画像5 | アップデート履歴「進化し続ける。」（OTA・LED・ルーター・ボタン） |
-| 画像6 | Artisan連携 |
-| 画像7 | サポート安心感 |
-| 画像8 | UZCP 世界初対応予定 |
-
-- デザイン：ダークブラウン＆アンバーのコーヒー×IoTテーマ
+- 7枚構成の商品説明画像セット（`uzu_roaster_mercari.html`）
 - **本日4台売れた！！**
 
----
-
 ### 3. UZCP（Universal Zeta Coffee Protocol）規格設計・公開
-**ファイル：`UZCP_1.0_spec.md`（日本語）、`UZCP_1.0_spec_EN.md`（英語）**
 **GitHub：https://github.com/uzuuzuhonpo/uzcp**
 
-コーヒー焙煎の完全自動化を目的としたJSON通信ベースのオープンプロトコル。
-
-#### 設計思想
-- シンプル（JSONテキストベース）
-- 双方向通信
-- トランスポート非依存（Wi-Fi/USB/Bluetooth/シリアル）
-- 拡張可能（`x_`プレフィックスでカスタムフィールド追加）
-- 自動化対応（ロボット焙煎まで想定）
+- JSONベースのオープンプロトコル
+- **Zeta** = リーマンゼータ関数（ζ(s)）から着想（インタビュー用説明）
+- MITライセンス追加済み
+- `unit`フィールド追加：省略時は摂氏（℃）とみなす（SI単位系準拠・強い日本！）
+- **世界初のUZCP 1.0 Lite対応デバイス爆誕（2026年2月26日）🎉**
 
 #### 主なメッセージ型
 | type | 方向 | 説明 |
 |------|------|------|
-| `telemetry` | Device→Controller | 温度・RoR・フェーズをリアルタイム送信 |
-| `command` | Controller→Device | 火力・風量・start/stopなど |
+| `telemetry` | Device→Controller | 温度・RoR・フェーズ |
+| `command` | Controller→Device | 火力・風量・start/stop |
 | `ack` | Device→Controller | コマンド受信確認 |
-| `profile` | 双方向 | 焙煎プロファイルの送受信 |
-| `status` | Device→Controller | デバイス状態・能力 |
-| `event` | Device→Controller | 1ハゼ・2ハゼ・排出などイベント通知 |
-| `robot_status` | Robot→Controller | ロボット焙煎拡張 |
-
-#### UZCP命名の由来
-- **Zeta** = リーマンゼータ関数（ζ(s)）から着想
-- 無限に続く複雑な系を統一的に記述する関数 ＝ バラバラなデバイスを統一するUZCPのコンセプトと一致
-- 「UZU Coffee Protocol」にすると利権臭がするのでZetaをねじ込んだｗｗｗ
-- **インタビューで聞かれたらこの説明を使う予定**
-
-#### UZCP Liteプロファイル（最小実装）
-```
-・uzcpフィールドがある
-・type: "telemetry"でbtとtsが入ってる
-→ これだけでUZCP 1.0 Lite対応を名乗れる
-```
-
----
+| `profile` | 双方向 | 焙煎プロファイル送受信 |
+| `event` | Device→Controller | 1ハゼ・2ハゼ・排出 |
 
 ### 4. UZU ROASTERへのUZCP実装
-**ファイル：`Artisan_sample_uzcp.ino`、`script_uzcp.js`**
-
-#### サーバー側（ESP32 / Arduino C++）
-- バージョン：`1.1.0` → `2.0.0`
-- `SendUZCPTelemetry()`を追加：毎秒UZCP形式のtelemetryをbroadcast
-- `onWebSocketEvent()`にUZCP command受信処理を追加
-- start/stopコマンドに対応、ackを自動返信
-- **既存のArtisan用通信は一切壊れない（後方互換）**
-
-#### クライアント側（JavaScript）
-- `sendWebCommand()`をUZCP形式に変更
-- `uzcpSupported`フラグでサーバーのUZCP対応を自動検出
-- telemetryに`uzcp:"1.0"`が含まれていたら自動でUZCP形式に切り替え
-- start/stop以外の既存コマンドは従来形式のまま
-
-#### 後方互換マトリクス
-```
-旧サーバー × 旧クライアント → ✅
-新サーバー × 旧クライアント → ✅（従来形式で動く）
-旧サーバー × 新クライアント → ✅（uzcp未検出→従来形式で送信）
-新サーバー × 新クライアント → ✅（UZCP形式）
-```
-
-**→ 世界初のUZCP 1.0 Lite対応デバイス爆誕（2026年2月26日）🎉**
+- ファームウェア v1.1.0 → v2.0.0（`Artisan_sample_uzcp.ino`）
+- クライアントJS UZCP対応（`script_uzcp.js`）
+- **後方互換マトリクス全4パターン✅**
 
 ---
 
-### 5. 今後のビジョン（今日の議論で見えてきたもの）
+## Day 2（2026年2月27日）
 
-#### 火力制御（次の実装）
-- SOUYI SY-121Nのダイヤルをサーボ（SG90）で回す
-- 3Dプリンターでアタッチメント作成
-- ダイヤルは無限回転・ストッパーなし・電源ON時は8の位置
-- 電源ON時に8の位置でサーボをアタッチ → キャリブレーション不要
-- まずON/OFF（MAX/MIN）から実装、将来的にPID制御・AI制御へ
+### 5. Firebase クラウドプロファイル共有プラットフォーム実装
+**ファイル：`index_firebase.html`、`script_firebase.js`**
 
-#### 焙煎データのクラウド保存（明日やること🔥）
-- **Firebase**（無料枠：1GB、Firestoreで十分）
-- STA接続されたESP32からFirebaseへアップロード
-- WebブラウザからFirebaseの焙煎プロファイルをダウンロード
-- クラウドON/OFFの設定をUZU ROASTERに追加
+#### Firebase設定
+- プロジェクト：UZU ROASTER（Sparkプラン・無料）
+- Firestore（Nativeモード、asia-northeast1東京）
+- compat版SDK（v10.8.0）採用
+- セキュリティルール：read=全員OK、write=ログイン済みのみ
+- 承認済みドメイン：uzuuzu.shop
 
-#### 焙煎プロファイル共有プラットフォーム構想
-```
-ローカルのみ：自分のプロファイルだけ（無料）
-クラウドON ：世界中のプロファイルにアクセス（無料）
-→ ユーザーが自然とONにする
-→ データが集まる → AIが賢くなる → さらにユーザーが増える
-```
-**ネットワーク効果 × GitHubモデル × Teslaモデル**
+#### 設計思想（壁打ちで決定）
+コメント必須の明示的共有
+→ Gitのcommit messageと同じ思想
+→ 意志のあるデータだけ集まる
+→ データ品質のフィルター
 
-#### AI焙煎の構造
-```
-【プロファイル層】豆の種類・産地・好み → 最適カーブを生成
-【制御層】ロースターの特性・熱慣性 → 自動追従
-→ 2層を分離して学習させる
-→ UZCPのtelemetryデータが蓄積されるほど賢くなる
-```
+#### 実装内容
+- クラウド共有ボタン（コメント必須）
+- クラウドブラウザ（検索・新着/古い順・20件ページング・件数表示）
+- Googleログイン認証
+- プロファイルにuid + userName紐づけ
+- クラウドブラウザにuserName表示（👤）
+
+#### 認証まわりの設計メモ
+- uzuuzu.shop → ログインOK・クラウドOK ✅
+- 192.168.4.1(AP) → インターネットなし → クラウドNG
+- 192.168.x.x(STA) → Mixed Content問題 → YAGNI
+- file:// → sessionStorage問題 → YAGNI
+- Windows + USB → uzuuzu.shopでUSB接続 → 解決済み！✅
+- スマホアプリ化 → Bluetooth接続で解決できるが → YAGNI
 
 ---
 
@@ -685,23 +628,40 @@ https://github.com/netadix/claude_summary
 |---------|------|
 | `uzu_roaster_mercari.html` | メルカリ商品画像セット（8枚） |
 | `UZCP_1.0_spec.md` | UZCP仕様書（日本語） |
-| `UZCP_1.0_spec_EN.md` | UZCP仕様書（英語・GitHub README用） |
+| `UZCP_1.0_spec_EN.md` | UZCP仕様書（英語） |
+| `LICENSE` | MITライセンス |
 | `Artisan_sample_uzcp.ino` | UZCP対応済みファームウェア（v2.0.0） |
 | `script_uzcp.js` | UZCP対応済みクライアントJS |
-
-## GitHub
-- UZCP仕様書：https://github.com/uzuuzuhonpo/uzcp
-- ※Section 11のContributingのURLが`uzuuzu/uzcp`のままなので要修正→`uzuuzuhonpo/uzcp`
+| `index_firebase.html` | Firebase対応済みindex.html |
+| `script_firebase.js` | Firebase対応済みscript.js |
 
 ---
 
-## 明日やること
-1. **FirebaseプロジェクトをClaudeと一緒に作成**
-2. **ESP32（STA接続）からFirebaseへ焙煎データをアップロード**
-3. **WebブラウザからFirebaseの焙煎プロファイルをダウンロード**
-4. **クラウドON/OFFの設定をUZU ROASTERに追加**
+## 次にやること
+1. 火力制御：SG90サーボ＋3Dプリンターアタッチメント作成
+2. ファームウェアにset_heaterコマンド実装
+3. GitHubのSection 11 Contributing URL修正（uzuuzu/uzcp → uzuuzuhonpo/uzcp）
+
+## ヤグニった項目（将来やるかも）
+- Gemini自然言語検索
+- 貢献度レベル・自動アップロード
+- スマホアプリ化（Bluetooth接続）
+- 堀場製作所OEM・CAMP FIREクラファン
+- STA接続時のクラウド対応（Mixed Content問題）
+- シークレットウィンドウ対応
 
 ---
 
-*「朝にVSCコインの話してたのに、夜にはコーヒー業界のTeslaになる構想まで見えた一日」*
-*— 2026年2月26日*
+## 重要な設計思想メモ
+- ヤグニる（YAGNI）：今必要じゃないものは作らない（2026年流行語大賞候補）
+- ヤグニの呼吸：壱ノ型「後で考えよう」〜奥義「YAGNI！」
+- 後方互換：既存ユーザーを壊さない
+- コメント必須共有：データ品質のフィルター
+- 2層AI：プロファイル層と制御層を分離して学習
+- Teslaモデル：デバイスを売りながらデータを蓄積してAIを育てる
+- ワークアラウンドバイキング：制約だらけでも楽しくやる
+
+---
+
+「面白い、がモチベーション。ヤグニの呼吸で全集中しながらコーヒー業界のTeslaになる構想まで見えた2日間」
+2026年2月26日〜27日
